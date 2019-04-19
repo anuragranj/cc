@@ -8,7 +8,7 @@ This is an official repository of
 Skip to:
 - [Joint Unsupervised Learning of Depth, Camera Motion, Optical Flow and Motion Segmentation](#jointcc)
 - [Mixed Domain Learning using MNIST+SVHN](#mnist)
-- [Downloads](#downloads)
+- [Download Pretrained Models and Evaluation Data](#downloads)
 
 ### Prerequisites
 Python3 and pytorch are required. Third party libraries can be installed (in a `python3 ` virtualenv) using:
