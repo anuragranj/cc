@@ -34,7 +34,6 @@ kitti2015
   | data_scene_flow  
   | data_scene_flow_calib
   | data_scene_flow_multiview  
-  | data_stereo_flow
   | semantic_labels
 ```
 
