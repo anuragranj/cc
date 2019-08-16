@@ -9,7 +9,7 @@ import cv2
 from torch.autograd import Variable
 from PIL import Image
 from scipy import interpolate, io
-from scipy.misc import imresize, imread
+from utils import imresize
 from scipy.ndimage.interpolation import zoom
 import numpy as np
 from path import Path

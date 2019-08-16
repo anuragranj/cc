@@ -2,7 +2,7 @@ import torch
 from torch.autograd import Variable
 from PIL import Image
 from scipy import interpolate
-from scipy.misc import imresize
+from utils import imresize
 from scipy.ndimage.interpolation import zoom
 import numpy as np
 from path import Path

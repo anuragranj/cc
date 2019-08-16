@@ -1,6 +1,6 @@
 import torch.utils.data as data
 import numpy as np
-from scipy.misc import imread
+from PIL import Image
 from path import Path
 import random
 
@@ -19,7 +19,7 @@ def crawl_folders(folders_list, sequence_length):
 
 
 def load_as_float(path, sequence_length):
-    stack = imread(path).astype(np.float32)
+    stack = np.array(Image.open(path)).astype(np.float32)
     h,w,_ = stack.shape
     w_img = int(w/(sequence_length))
     imgs = [stack[:,i*w_img:(i+1)*w_img] for i in range(sequence_length)]

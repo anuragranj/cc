@@ -1,6 +1,6 @@
 import torch.utils.data as data
 import numpy as np
-from scipy.misc import imread
+from PIL import Image
 from path import Path
 import torch
 
@@ -39,7 +39,7 @@ def crawl_folders_seq(folders_list, sequence_length):
 
 
 def load_as_float(path):
-    return imread(path).astype(np.float32)
+    return np.array(Image.open(path)).astype(np.float32)
 
 
 class ValidationSet(data.Dataset):

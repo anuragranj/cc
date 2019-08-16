@@ -3,7 +3,7 @@
 import numpy as np
 # import pandas as pd
 from path import Path
-from scipy.misc import imread
+from PIL import Image
 from tqdm import tqdm
 from .sintel_io import cam_read
 
@@ -15,7 +15,7 @@ class test_framework_Sintel(object):
     def generator(self):
         for img_list, pose_list, sample_list in zip(self.img_files, self.poses, self.sample_indices):
             for snippet_indices in sample_list:
-                imgs = [imread(img_list[i]).astype(np.float32) for i in snippet_indices]
+                imgs = [np.array(Image.open(img_list[i])).astype(np.float32) for i in snippet_indices]
                 poses = [cam_read(pose_list[i], pose_only=True).astype(np.float32) for i in snippet_indices]
                 poses = np.stack(poses)
                 first_pose = poses[0]

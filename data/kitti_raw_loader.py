@@ -1,8 +1,11 @@
 import numpy as np
 from path import Path
-import scipy.misc
 from collections import Counter
+from PIL import Image
 
+def imresize(arr, sz):
+    height, width = sz
+    return np.array(Image.fromarray(arr).resize((width, height), resample=Image.BILINEAR))
 
 class KittiRawLoader(object):
     def __init__(self,
@@ -108,10 +111,10 @@ class KittiRawLoader(object):
         img_file = scene_data['dir']/'image_{}'.format(scene_data['cid'])/'data'/scene_data['frame_id'][tgt_idx]+'.png'
         if not img_file.isfile():
             return None
-        img = scipy.misc.imread(img_file)
+        img = np.array(Image.open(img_file))
         zoom_y = self.img_height/img.shape[0]
         zoom_x = self.img_width/img.shape[1]
-        img = scipy.misc.imresize(img, (self.img_height, self.img_width))
+        img = imresize(img, (self.img_height, self.img_width))
         return img, zoom_x, zoom_y
 
     def read_raw_calib_file(self, filepath):

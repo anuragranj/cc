@@ -6,7 +6,7 @@
 import torch
 from torch.autograd import Variable
 
-from scipy.misc import imresize
+from utils import imresize
 import numpy as np
 from path import Path
 import argparse

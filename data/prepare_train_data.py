@@ -1,6 +1,6 @@
 from __future__ import division
 import argparse
-import scipy.misc
+from PIL import Image
 import numpy as np
 from joblib import Parallel, delayed
 from tqdm import tqdm
@@ -42,7 +42,7 @@ def dump_example(scene):
             assert(len(sample) >= 2)
             img, frame_nb = sample[0], sample[1]
             dump_img_file = dump_dir/'{}.jpg'.format(frame_nb)
-            scipy.misc.imsave(dump_img_file, img)
+            Image.fromarray(img).save(dump_img_file)
             if len(sample) == 3:
                 dump_depth_file = dump_dir/'{}.npy'.format(frame_nb)
                 np.save(dump_depth_file, sample[2])

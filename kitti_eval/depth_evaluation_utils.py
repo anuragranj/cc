@@ -5,7 +5,7 @@ import numpy as np
 import datetime
 from collections import Counter
 from path import Path
-from scipy.misc import imread
+from PIL import Image
 from tqdm import tqdm
 
 width_to_focal = dict()
@@ -22,10 +22,10 @@ class test_framework_KITTI(object):
         self.calib_dirs, self.gt_files, self.img_files, self.displacements, self.cams = read_scene_data(self.root, test_files, seq_length, step)
 
     def __getitem__(self, i):
-        tgt = imread(self.img_files[i][0]).astype(np.float32)
+        tgt = np.array(Image.open(self.img_files[i][0])).astype(np.float32)
         depth = generate_depth_map(self.calib_dirs[i], self.gt_files[i], tgt.shape[:2], self.cams[i])
         return {'tgt': tgt,
-                'ref': [imread(img).astype(np.float32) for img in self.img_files[i][1]],
+                'ref': [np.array(Image.open(img)).astype(np.float32) for img in self.img_files[i][1]],
                 'path':self.img_files[i][0],
                 'gt_depth': depth,
                 'displacements': np.array(self.displacements[i]),

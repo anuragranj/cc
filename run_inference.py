@@ -1,6 +1,6 @@
 import torch
 
-from scipy.misc import imread, imsave, imresize
+from utils import imresize
 import numpy as np
 from path import Path
 import argparse
@@ -51,7 +51,7 @@ def main():
 
     for file in tqdm(test_files):
 
-        img = imread(file).astype(np.float32)
+        img = np.array(Image.open(file)).astype(np.float32)
 
         h,w,_ = img.shape
         if (not args.no_resize) and (h != args.img_height or w != args.img_width):
@@ -66,11 +66,11 @@ def main():
 
         if args.output_disp:
             disp = (255*tensor2array(output, max_value=None, colormap='bone')).astype(np.uint8)
-            imsave(output_dir/'{}_disp{}'.format(file.namebase,file.ext), disp)
+            Image.fromarray(disp).save(output_dir/'{}_disp{}'.format(file.namebase,file.ext))
         if args.output_depth:
             depth = 1/output
             depth = (255*tensor2array(depth, max_value=10, colormap='rainbow')).astype(np.uint8)
-            imsave(output_dir/'{}_depth{}'.format(file.namebase,file.ext), depth)
+            Image.fromarray(depth).save(output_dir/'{}_depth{}'.format(file.namebase,file.ext))
 
 
 if __name__ == '__main__':

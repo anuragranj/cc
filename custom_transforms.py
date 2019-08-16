@@ -2,7 +2,7 @@ from __future__ import division
 import torch
 import random
 import numpy as np
-from scipy.misc import imresize, imrotate
+from utils import imresize, imrotate
 
 '''Set of tranform random routines that takes list of inputs as arguments,
 in order to have random but coherent transformations.'''
@@ -100,7 +100,6 @@ class RandomScaleCrop(object):
         in_h, in_w, _ = images[0].shape
         x_scaling, y_scaling = np.random.uniform(1,1.1,2)
         scaled_h, scaled_w = int(in_h * y_scaling), int(in_w * x_scaling)
-
         output_intrinsics[0] *= x_scaling
         output_intrinsics[1] *= y_scaling
         scaled_images = [imresize(im, (scaled_h, scaled_w)) for im in images]

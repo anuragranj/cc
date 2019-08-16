@@ -1,9 +1,13 @@
 from __future__ import division
 import json
 import numpy as np
-import scipy.misc
+from PIL import Image
 from path import Path
 from tqdm import tqdm
+
+def imresize(arr, sz):
+    height, width = sz
+    return np.array(Image.fromarray(arr).resize((width, height), resample=Image.BILINEAR))
 
 
 class cityscapes_loader(object):
@@ -81,7 +85,7 @@ class cityscapes_loader(object):
                                [0, fy, v0],
                                [0,  0,  1]])
 
-        img = scipy.misc.imread(frame_path)
+        img = np.array(Image.open(frame_path))
         h,w,_ = img.shape
         zoom_y = self.img_height/h
         zoom_x = self.img_width/w
@@ -114,6 +118,6 @@ class cityscapes_loader(object):
                                                           frame_id)
         if not img_file.isfile():
             return None
-        img = scipy.misc.imread(img_file)
-        img = scipy.misc.imresize(img, (self.img_height, self.img_width))[:int(self.img_height*0.75)]
+        img = np.array(Image.open(img_file))
+        img = imresize(img, (self.img_height, self.img_width))[:int(self.img_height*0.75)]
         return img

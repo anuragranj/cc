@@ -5,7 +5,6 @@
 
 import torch.utils.data as data
 import numpy as np
-from scipy.misc import imread
 from PIL import Image
 from path import Path
 from flowutils import flow_io
@@ -29,7 +28,7 @@ def crawl_folders(folders_list):
 
 
 def load_as_float(path):
-    return imread(path).astype(np.float32)
+    return np.array(Image.open(path)).astype(np.float32)
 
 def get_intrinsics(calib_file, cid='02'):
     #print(zoom_x, zoom_y)

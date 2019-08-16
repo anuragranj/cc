@@ -441,7 +441,7 @@ def train(train_loader, disp_net, pose_net, mask_net, flow_net, optimizer, epoch
     flow_net.train()
 
     end = time.time()
-
+    
     for i, (tgt_img, ref_imgs, intrinsics, intrinsics_inv) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)

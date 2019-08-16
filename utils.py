@@ -4,6 +4,14 @@ import numpy as np
 import torch
 from matplotlib import cm
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from PIL import Image
+
+def imrotate(arr, angle):
+    return np.array(Image.fromarray(arr.astype('uint8')).rotate(angle, resample=Image.BILINEAR))
+
+def imresize(arr, sz):
+    height, width = sz
+    return np.array(Image.fromarray(arr.astype('uint8')).resize((width, height), resample=Image.BILINEAR))
 
 def high_res_colormap(low_res_cmap, resolution=1000, max_value=1):
     # Construct the list colormap, with interpolated values for higer resolution
