@@ -1,11 +1,15 @@
 # Competitive Collaboration
 This is an official repository of
-**Competitive Collaboration: Joint Unsupervised Learning of Depth, Camera Motion, Optical Flow and Motion Segmentation**. The project was formerly referred by **Adversarial Collaboration**. We recently ported the entire code to `pytorch-1.0`, so if you discover bugs, please file an issue.
+**Competitive Collaboration: Joint Unsupervised Learning of Depth, Camera Motion, Optical Flow and Motion Segmentation**. The project was formerly referred by **Adversarial Collaboration**. 
+
+### News
+- **16 August '19:** `skimage` dependencies are removed in favour of `PIL`, and are supported in the [`pil` branch](https://github.com/anuragranj/cc/tree/pil). If you discover bugs, please file an issue, or send a pull request. This will eventually be merged with `master` if users are satisfied.
+- **11 March '19:** We recently ported the entire code to `pytorch-1.0`, so if you discover bugs, please file an issue.
 
 [[Project Page]](http://research.nvidia.com/publication/2018-05_Adversarial-Collaboration-Joint)
 [[Arxiv]](https://arxiv.org/abs/1805.09806)
 
-Skip to:
+**Skip to:**
 - [Joint Unsupervised Learning of Depth, Camera Motion, Optical Flow and Motion Segmentation](#jointcc)
 - [Mixed Domain Learning using MNIST+SVHN](#mnist)
 - [Download Pretrained Models and Evaluation Data](#downloads)
