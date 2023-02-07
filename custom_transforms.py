@@ -2,7 +2,8 @@ from __future__ import division
 import torch
 import random
 import numpy as np
-from scipy.misc import imresize, imrotate
+from skimage.transform import resize, rotate
+
 
 '''Set of tranform random routines that takes list of inputs as arguments,
 in order to have random but coherent transformations.'''
@@ -80,7 +81,7 @@ class RandomRotate(object):
         else:
             assert intrinsics is not None
             rot = np.random.uniform(0,10)
-            rotated_images = [imrotate(im, rot) for im in images]
+            rotated_images = [rotate(im, rot) for im in images]
 
             return rotated_images, intrinsics
 
@@ -103,7 +104,7 @@ class RandomScaleCrop(object):
 
         output_intrinsics[0] *= x_scaling
         output_intrinsics[1] *= y_scaling
-        scaled_images = [imresize(im, (scaled_h, scaled_w)) for im in images]
+        scaled_images = [resize(im, (scaled_h, scaled_w)) for im in images]
 
         if self.h and self.w:
             in_h, in_w = self.h, self.w
@@ -132,6 +133,6 @@ class Scale(object):
 
         output_intrinsics[0] *= (scaled_w / in_w)
         output_intrinsics[1] *= (scaled_h / in_h)
-        scaled_images = [imresize(im, (scaled_h, scaled_w)) for im in images]
+        scaled_images = [resize(im, (scaled_h, scaled_w)) for im in images]
 
         return scaled_images, output_intrinsics
