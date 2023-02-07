@@ -108,13 +108,14 @@ def main():
     errors_bare = AverageMeter(i=len(error_names))
 
     for i, (tgt_img, ref_imgs, intrinsics, intrinsics_inv, flow_gt, obj_map_gt, semantic_map_gt) in enumerate(tqdm(val_loader)):
-        tgt_img_var = Variable(tgt_img.cuda(), volatile=True)
-        ref_imgs_var = [Variable(img.cuda(), volatile=True) for img in ref_imgs]
-        intrinsics_var = Variable(intrinsics.cuda(), volatile=True)
-        intrinsics_inv_var = Variable(intrinsics_inv.cuda(), volatile=True)
+        with torch.no_grad():
+            tgt_img_var = Variable(tgt_img.cuda())
+            ref_imgs_var = [Variable(img.cuda()) for img in ref_imgs]
+            intrinsics_var = Variable(intrinsics.cuda())
+            intrinsics_inv_var = Variable(intrinsics_inv.cuda())
 
-        flow_gt_var = Variable(flow_gt.cuda(), volatile=True)
-        obj_map_gt_var = Variable(obj_map_gt.cuda(), volatile=True)
+            flow_gt_var = Variable(flow_gt.cuda())
+            obj_map_gt_var = Variable(obj_map_gt.cuda())
 
         disp = disp_net(tgt_img_var)
         depth = 1/disp
@@ -182,13 +183,13 @@ def main():
                                     tensor2array(total_flow.data[0].cpu()) )) )
 
             row1_viz = np.hstack((tgt_img_viz, depth_viz, mask_viz))
-            viz3 = np.vstack((255*tgt_img_viz, 255*depth_viz, 255*mask_viz,
+            viz3 = np.hstack((255*tgt_img_viz, 255*depth_viz, 255*mask_viz,
                         flow_to_image(np.vstack((tensor2array(flow_fwd_non_rigid.data[0].cpu()),
                                     tensor2array(total_flow.data[0].cpu()))))))
 
-            row1_viz_im = Image.fromarray((255*row1_viz).astype('uint8'))
-            row2_viz_im = Image.fromarray((row2_viz).astype('uint8'))
-            viz3_im = Image.fromarray(viz3.astype('uint8'))
+            row1_viz_im = Image.fromarray((255*row1_viz.transpose(1, 2, 0)).astype('uint8'))
+            row2_viz_im = Image.fromarray((255*row2_viz.transpose(1, 2, 0)).astype('uint8'))
+            viz3_im = Image.fromarray(viz3.transpose(1, 2, 0).astype('uint8'))
 
             row1_viz_im.save(viz_dir/str(i).zfill(3)+'01.png')
             row2_viz_im.save(viz_dir/str(i).zfill(3)+'02.png')
