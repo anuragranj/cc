@@ -157,8 +157,8 @@ def main():
 
 
 
-        if (args.output_dir is not None): #and i%10==0:
-            ind = i #ind = int(i//10)
+        if (args.output_dir is not None) and i%10==0:
+            ind = int(i//10)
             output_writer.add_image('val Dispnet Output Normalized', tensor2array(disp.data[0].cpu(), max_value=None, colormap='bone'), ind)
             output_writer.add_image('val Input', tensor2array(tgt_img[0].cpu()), i)
             output_writer.add_image('val Total Flow Output', flow_to_image(tensor2array(total_flow.data[0].cpu())), ind)
