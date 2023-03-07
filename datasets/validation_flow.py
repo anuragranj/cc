@@ -5,7 +5,7 @@
 
 import torch.utils.data as data
 import numpy as np
-from scipy.misc import imread
+from skimage.io import imread
 from PIL import Image
 from path import Path
 from flowutils import flow_io

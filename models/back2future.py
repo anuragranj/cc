@@ -307,9 +307,9 @@ class Model(nn.Module):
         vgrid[:,1,:,:] = 2.0*vgrid[:,1,:,:].clone()/max(H-1,1)-1.0
 
         vgrid = vgrid.permute(0,2,3,1)
-        output = nn.functional.grid_sample(x, vgrid, padding_mode='border')
+        output = nn.functional.grid_sample(x, vgrid, padding_mode='border', align_corners=True)
         mask = torch.autograd.Variable(torch.ones(x.size()), requires_grad=False).cuda()
-        mask = nn.functional.grid_sample(mask, vgrid)
+        mask = nn.functional.grid_sample(mask, vgrid, align_corners=True)
 
         # if W==128:
             # np.save('mask.npy', mask.cpu().data.numpy())

@@ -37,7 +37,7 @@ parser.add_argument('--masknet', dest='masknet', type=str, default='MaskNet6', c
 parser.add_argument('--flownet', dest='flownet', type=str, default='Back2Future', choices=['Back2Future', 'FlowNetC6'],
                     help='flow network architecture.')
 
-parser.add_argument('--THRESH', dest='THRESH', type=float, default=0.01, help='THRESH')
+parser.add_argument('--THRESH', dest='THRESH', type=float, default=0.94, help='THRESH')
 parser.add_argument('--pretrained-disp', dest='pretrained_disp', default=None, metavar='PATH', help='path to pre-trained dispnet model')
 parser.add_argument('--pretrained-pose', dest='pretrained_pose', default=None, metavar='PATH', help='path to pre-trained posenet model')
 parser.add_argument('--pretrained-flow', dest='pretrained_flow', default=None, metavar='PATH', help='path to pre-trained flownet model')
@@ -106,13 +106,14 @@ def main():
     error_names = ['epe_total', 'epe_sp', 'epe_mv', 'Fl', 'epe_total_gt_mask', 'epe_sp_gt_mask', 'epe_mv_gt_mask', 'Fl_gt_mask']
     errors = AverageMeter(i=len(error_names))
     for i, (tgt_img, ref_imgs, intrinsics, intrinsics_inv, flow_gt, obj_map_gt) in enumerate(tqdm(val_loader)):
-        tgt_img_var = Variable(tgt_img.cuda(), volatile=True)
-        ref_imgs_var = [Variable(img.cuda(), volatile=True) for img in ref_imgs]
-        intrinsics_var = Variable(intrinsics.cuda(), volatile=True)
-        intrinsics_inv_var = Variable(intrinsics_inv.cuda(), volatile=True)
+        with torch.no_grad():
+            tgt_img_var = Variable(tgt_img.cuda())
+            ref_imgs_var = [Variable(img.cuda()) for img in ref_imgs]
+            intrinsics_var = Variable(intrinsics.cuda())
+            intrinsics_inv_var = Variable(intrinsics_inv.cuda())
 
-        flow_gt_var = Variable(flow_gt.cuda(), volatile=True)
-        obj_map_gt_var = Variable(obj_map_gt.cuda(), volatile=True)
+            flow_gt_var = Variable(flow_gt.cuda())
+            obj_map_gt_var = Variable(obj_map_gt.cuda())
 
         disp = disp_net(tgt_img_var)
         depth = 1/disp
@@ -128,18 +129,17 @@ def main():
         flow_cam_bwd = pose2flow(depth.squeeze(1), pose[:,1], intrinsics_var, intrinsics_inv_var)
 
         rigidity_mask = 1 - (1-explainability_mask[:,1])*(1-explainability_mask[:,2]).unsqueeze(1) > 0.5
-        rigidity_mask_census_soft = (flow_cam - flow_fwd).abs()#.normalize()
-        rigidity_mask_census_u = rigidity_mask_census_soft[:,0] < args.THRESH
-        rigidity_mask_census_v = rigidity_mask_census_soft[:,1] < args.THRESH
-        rigidity_mask_census = (rigidity_mask_census_u).type_as(flow_fwd) * (rigidity_mask_census_v).type_as(flow_fwd)
+        rigidity_mask_census_soft = (flow_cam - flow_fwd).pow(2).sum(dim=1).unsqueeze(1).sqrt()#.normalize()
+        rigidity_mask_census_soft = 1 - rigidity_mask_census_soft/rigidity_mask_census_soft.max()
+        rigidity_mask_census = rigidity_mask_census_soft > args.THRESH
 
         rigidity_mask_combined = 1 - (1-rigidity_mask.type_as(explainability_mask))*(1-rigidity_mask_census.type_as(explainability_mask))
 
-        obj_map_gt_var_expanded = obj_map_gt_var.unsqueeze(1).type_as(flow_fwd)
-
-        flow_fwd_non_rigid = (rigidity_mask_combined<=args.THRESH).type_as(flow_fwd).expand_as(flow_fwd) * flow_fwd
-        flow_fwd_rigid = (rigidity_mask_combined>args.THRESH).type_as(flow_cam).expand_as(flow_cam) * flow_cam
+        flow_fwd_non_rigid = (1- rigidity_mask_combined).type_as(flow_fwd).expand_as(flow_fwd) * flow_fwd
+        flow_fwd_rigid = rigidity_mask_combined.type_as(flow_fwd).expand_as(flow_fwd) * flow_cam
         total_flow = flow_fwd_rigid + flow_fwd_non_rigid
+
+        obj_map_gt_var_expanded = obj_map_gt_var.unsqueeze(1).type_as(flow_fwd)
 
         rigidity_mask = rigidity_mask.type_as(flow_fwd)
         _epe_errors = compute_all_epes(flow_gt_var, flow_cam, flow_fwd, rigidity_mask_combined) + compute_all_epes(flow_gt_var, flow_cam, flow_fwd, (1-obj_map_gt_var_expanded) )
@@ -177,8 +177,8 @@ def main():
             row1_viz = np.hstack((tgt_img_viz, depth_viz, mask_viz))
             row2_viz = np.hstack((rigid_flow_viz, non_rigid_flow_viz, total_flow_viz))
 
-            row1_viz_im = Image.fromarray((255*row1_viz).astype('uint8'))
-            row2_viz_im = Image.fromarray((row2_viz).astype('uint8'))
+            row1_viz_im = Image.fromarray((255*row1_viz.transpose(1, 2, 0)).astype('uint8'))
+            row2_viz_im = Image.fromarray((255*row2_viz.transpose(1, 2, 0)).astype('uint8'))
 
             row1_viz_im.save(viz_dir/str(i).zfill(3)+'01.png')
             row2_viz_im.save(viz_dir/str(i).zfill(3)+'02.png')
@@ -191,7 +191,7 @@ def outlier_err(gt, pred, tau=[3,0.05]):
     _, _, h_pred, w_pred = pred.size()
     bs, nc, h_gt, w_gt = gt.size()
     u_gt, v_gt, valid_gt = gt[:,0,:,:], gt[:,1,:,:], gt[:,2,:,:]
-    pred = nn.functional.upsample(pred, size=(h_gt, w_gt), mode='bilinear')
+    pred = nn.functional.interpolate(pred, size=(h_gt, w_gt), mode='bilinear')
     u_pred = pred[:,0,:,:] * (w_gt/w_pred)
     v_pred = pred[:,1,:,:] * (h_gt/h_pred)
 
