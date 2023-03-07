@@ -37,7 +37,7 @@ parser.add_argument('--masknet', dest='masknet', type=str, default='MaskNet6', c
 parser.add_argument('--flownet', dest='flownet', type=str, default='Back2Future', choices=['Back2Future', 'FlowNetC6'],
                     help='flow network architecture.')
 
-parser.add_argument('--THRESH', dest='THRESH', type=float, default=0.01, help='THRESH')
+parser.add_argument('--THRESH', dest='THRESH', type=float, default=0.94, help='THRESH')
 parser.add_argument('--pretrained-disp', dest='pretrained_disp', default=None, metavar='PATH', help='path to pre-trained dispnet model')
 parser.add_argument('--pretrained-pose', dest='pretrained_pose', default=None, metavar='PATH', help='path to pre-trained posenet model')
 parser.add_argument('--pretrained-flow', dest='pretrained_flow', default=None, metavar='PATH', help='path to pre-trained flownet model')
@@ -129,18 +129,17 @@ def main():
         flow_cam_bwd = pose2flow(depth.squeeze(1), pose[:,1], intrinsics_var, intrinsics_inv_var)
 
         rigidity_mask = 1 - (1-explainability_mask[:,1])*(1-explainability_mask[:,2]).unsqueeze(1) > 0.5
-        rigidity_mask_census_soft = (flow_cam - flow_fwd).abs()#.normalize()
-        rigidity_mask_census_u = rigidity_mask_census_soft[:,0] < args.THRESH
-        rigidity_mask_census_v = rigidity_mask_census_soft[:,1] < args.THRESH
-        rigidity_mask_census = (rigidity_mask_census_u).type_as(flow_fwd) * (rigidity_mask_census_v).type_as(flow_fwd)
+        rigidity_mask_census_soft = (flow_cam - flow_fwd).pow(2).sum(dim=1).unsqueeze(1).sqrt()#.normalize()
+        rigidity_mask_census_soft = 1 - rigidity_mask_census_soft/rigidity_mask_census_soft.max()
+        rigidity_mask_census = rigidity_mask_census_soft > args.THRESH
 
         rigidity_mask_combined = 1 - (1-rigidity_mask.type_as(explainability_mask))*(1-rigidity_mask_census.type_as(explainability_mask))
 
-        obj_map_gt_var_expanded = obj_map_gt_var.unsqueeze(1).type_as(flow_fwd)
-
-        flow_fwd_non_rigid = (rigidity_mask_combined<=args.THRESH).type_as(flow_fwd).expand_as(flow_fwd) * flow_fwd
-        flow_fwd_rigid = (rigidity_mask_combined>args.THRESH).type_as(flow_cam).expand_as(flow_cam) * flow_cam
+        flow_fwd_non_rigid = (1- rigidity_mask_combined).type_as(flow_fwd).expand_as(flow_fwd) * flow_fwd
+        flow_fwd_rigid = rigidity_mask_combined.type_as(flow_fwd).expand_as(flow_fwd) * flow_cam
         total_flow = flow_fwd_rigid + flow_fwd_non_rigid
+
+        obj_map_gt_var_expanded = obj_map_gt_var.unsqueeze(1).type_as(flow_fwd)
 
         rigidity_mask = rigidity_mask.type_as(flow_fwd)
         _epe_errors = compute_all_epes(flow_gt_var, flow_cam, flow_fwd, rigidity_mask_combined) + compute_all_epes(flow_gt_var, flow_cam, flow_fwd, (1-obj_map_gt_var_expanded) )
@@ -158,8 +157,8 @@ def main():
 
 
 
-        if (args.output_dir is not None) and i%10==0:
-            ind = int(i//10)
+        if (args.output_dir is not None): #and i%10==0:
+            ind = i #ind = int(i//10)
             output_writer.add_image('val Dispnet Output Normalized', tensor2array(disp.data[0].cpu(), max_value=None, colormap='bone'), ind)
             output_writer.add_image('val Input', tensor2array(tgt_img[0].cpu()), i)
             output_writer.add_image('val Total Flow Output', flow_to_image(tensor2array(total_flow.data[0].cpu())), ind)
